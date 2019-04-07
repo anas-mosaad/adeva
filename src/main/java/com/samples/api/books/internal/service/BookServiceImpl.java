@@ -1,16 +1,16 @@
 package com.samples.api.books.internal.service;
 
 import com.samples.api.books.internal.exceptions.ResourceNotFoundException;
-import com.samples.api.books.internal.model.Author;
 import com.samples.api.books.internal.model.Book;
 import com.samples.api.books.internal.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -37,8 +37,41 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> read() {
-        return repository.findAll();
+    public List<Book> read(String name, String country, String publisher, Integer year) {
+        if (name == null && country == null && publisher == null && year == null) {
+            return repository.findAll();
+        } else if (year == null) {
+            Book book = new Book();
+            book.setName(name);
+            book.setCountry(country);
+            book.setPublisher(publisher);
+            return repository.findAll(Example.of(book, ExampleMatcher.matchingAll()));
+        } else {
+            LocalDate from = LocalDate.of(year, 1, 1);
+            LocalDate to = LocalDate.of(year, 12, 31);
+            if (name != null) {
+                if (publisher != null) {
+                    if (country != null) {
+                        return repository.findAllByReleaseDateBetweenAndNameAndPublisherAndCountry(from, to, name, publisher, country);
+                    }
+                    return repository.findAllByReleaseDateBetweenAndNameAndPublisher(from, to, name, publisher);
+                }
+                if (country != null) {
+                    return repository.findAllByReleaseDateBetweenAndNameAndCountry(from, to, name, country);
+                }
+                return repository.findAllByReleaseDateBetweenAndName(from, to, name);
+            }
+            if (country != null) {
+                if (publisher != null) {
+                    return repository.findAllByReleaseDateBetweenAndPublisherAndCountry(from, to, publisher, country);
+                }
+                return repository.findAllByReleaseDateBetweenAndCountry(from, to, country);
+            }
+            if (publisher != null) {
+                return repository.findAllByReleaseDateBetweenAndPublisher(from, to, publisher);
+            }
+            return repository.findAllByReleaseDateBetween(from, to);
+        }
     }
 
     @Override

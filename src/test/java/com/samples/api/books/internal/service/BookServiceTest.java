@@ -1,6 +1,5 @@
 package com.samples.api.books.internal.service;
 
-import com.samples.api.books.BooksApplication;
 import com.samples.api.books.internal.dto.Book;
 import com.samples.api.books.rest.BookResponse;
 import com.samples.api.books.rest.BookResponseWithMessage;
@@ -8,7 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
@@ -21,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.samples.api.books.rest.InternalBookController.DELETE;
+import static com.samples.api.books.rest.InternalBookController.DELETED;
 import static com.samples.api.books.rest.InternalBookController.UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,13 +66,17 @@ public class BookServiceTest {
 
     @Test
     public void whenReadThenShouldGetMatchingBook() {
-        ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri + "/" + book.getId(),
+        ResponseEntity<BookResponse<Book>> bookResponse = template.exchange(booksUri + "/" + book.getId(),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<BookResponse<List<Book>>>(){});
+                new ParameterizedTypeReference<BookResponse<Book>>(){});
 
         // Assert
-        Book book2 = getBook(bookResponse);
+
+        BookResponse<Book> body = bookResponse.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo("success");
+        Book book2 = body.getData();
         assertThat(book2).isNotNull();
         assertThat(book2.getId()).isEqualTo(book.getId());
         assertThat(book2.getName()).isEqualTo(book.getName());
@@ -86,7 +88,7 @@ public class BookServiceTest {
     }
 
     @Test
-    public void whenReadAllBokksThenShouldReturnListWithAtLeastOneBook() {
+    public void whenReadAllBooksThenShouldReturnListWithAtLeastOneBook() {
         // Act
         ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri,
                 HttpMethod.GET,
@@ -208,7 +210,7 @@ public class BookServiceTest {
         BookResponseWithMessage<Void> body = bookResponse.getBody();
         assertThat(body).isNotNull();
         assertThat(body.getStatus()).isEqualTo("success");
-        assertThat(body.getMessage()).isEqualTo(String.format(DELETE, book.getName()));
+        assertThat(body.getMessage()).isEqualTo(String.format(DELETED, book.getName()));
         book = null;
     }
 

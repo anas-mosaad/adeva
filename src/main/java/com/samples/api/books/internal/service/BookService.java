@@ -9,7 +9,7 @@ public interface BookService {
 
     Book read(Long id);
 
-    List<Book> read();
+    List<Book> read(String name, String country, String publisher, Integer year);
 
     Book update(Book oldBook, Book newBook);
 

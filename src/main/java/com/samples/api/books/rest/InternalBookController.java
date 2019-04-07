@@ -20,7 +20,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 public class InternalBookController {
 
     public static final String UPDATED = "The book %s was updated successfully";
-    public static final String DELETE = "The book %s was deleted successfully";
+    public static final String DELETED = "The book %s was deleted successfully";
 
     private final BookService service;
     private final MapperService mapper;
@@ -31,8 +31,11 @@ public class InternalBookController {
     }
 
     @RequestMapping(value = "", method = GET)
-    public BookResponse<Collection<Book>> getAllBooks() {
-        return ok(mapper.toDTO(service.read()));
+    public BookResponse<Collection<Book>> getAllBooks(@RequestParam(required = false) String name,
+                                                      @RequestParam(required = false) String country,
+                                                      @RequestParam(required = false) String publisher,
+                                                      @RequestParam(required = false) Integer year) {
+        return ok(mapper.toDTO(service.read(name, country, publisher, year)));
     }
 
     @RequestMapping(value = "", method = POST)
@@ -41,8 +44,8 @@ public class InternalBookController {
     }
 
     @RequestMapping(value = "/{id}", method = GET)
-    public BookResponse<Collection<Book>> get(@PathVariable Long id) {
-        return ok(Collections.singletonList(mapper.toDTO(service.read(id))));
+    public BookResponse<Book> get(@PathVariable Long id) {
+        return ok(mapper.toDTO(service.read(id)));
     }
 
     @RequestMapping(value = "/{id}", method = PATCH)
@@ -52,9 +55,19 @@ public class InternalBookController {
         return BookResponseWithMessage.ok(mapper.toDTO(service.update(old, mapper.toModel(book))), String.format(UPDATED, name));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{id}/update", method = POST)
+    public BookResponseWithMessage<Book> update2(@PathVariable Long id, @RequestBody Book book) {
+        return update(id, book);
+    }
+
+    @RequestMapping(value = "/{id}", method = DELETE)
     public BookResponseWithMessage<?> delete(@PathVariable Long id) {
         Book deleted = mapper.toDTO(service.delete(id));
-        return deleted(String.format(DELETE, deleted.getName()));
+        return deleted(String.format(DELETED, deleted.getName()));
+    }
+
+    @RequestMapping(value = "/{id}/delete", method = POST)
+    public BookResponseWithMessage<?> delete2(@PathVariable Long id) {
+        return delete(id);
     }
 }
