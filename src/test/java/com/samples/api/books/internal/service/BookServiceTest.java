@@ -30,8 +30,8 @@ public class BookServiceTest {
     @LocalServerPort
     private int port;
 
-    private String booksUri;
-//    private String booksUri = "http://localhost:8080/api/v1/books";
+//    private String booksUri;
+    private String booksUri = "http://localhost:8080/api/v1/books";
 
     private RestTemplate template = getRestTemplate();
     private Book book;
@@ -43,9 +43,9 @@ public class BookServiceTest {
 
     @Before
     public void setUp() {
-        booksUri = "http://localhost:" + port + "/api/v1/books";
+//        booksUri = "http://localhost:" + port + "/api/v1/books";
         System.out.println("URL: " + booksUri);
-        book = create(createBook());
+        book = create(createBook(null, null, null, 2019));
     }
 
     @After
@@ -60,7 +60,7 @@ public class BookServiceTest {
 
     @Test
     public void whenCreateThenShouldSetId() {
-        Book book2 = create(createBook());
+        Book book2 = create(createBook(null, null, null, 2019));
         books.add(book2);
     }
 
@@ -101,6 +101,90 @@ public class BookServiceTest {
         List<Book> data = body.getData();
         assertThat(data).isNotNull();
         assertThat(data.size()).isGreaterThan(0);
+    }
+
+    @Test
+    public void whenReadAllBooksByNameThenShouldReturnMatchingBook() {
+        // Arrange
+        String name = "DB2 HADR";
+        book = create(createBook(name, null, null, 2019));
+
+        // Act
+        ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri + "?name=" + name,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BookResponse<List<Book>>>(){});
+
+        // Assert
+        BookResponse<List<Book>> body = bookResponse.getBody();
+        assertThat(body).isNotNull();
+        List<Book> data = body.getData();
+        assertThat(data).isNotNull();
+        assertThat(data.size()).isEqualTo(1);
+        assertThat(data.get(0).getName()).isEqualTo(name);
+    }
+
+    @Test
+    public void whenReadAllBooksByCountryThenShouldReturnMatchingBook() {
+        // Arrange
+        String country = "KSA";
+        book = create(createBook(null, country, null, 2019));
+
+        // Act
+        ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri + "?country=" + country,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BookResponse<List<Book>>>(){});
+
+        // Assert
+        BookResponse<List<Book>> body = bookResponse.getBody();
+        assertThat(body).isNotNull();
+        List<Book> data = body.getData();
+        assertThat(data).isNotNull();
+        assertThat(data.size()).isEqualTo(1);
+        assertThat(data.get(0).getCountry()).isEqualTo(country);
+    }
+
+    @Test
+    public void whenReadAllByPublisherThenShouldReturnMatchingBook() {
+        // Arrange
+        String publisher = "El-manar";
+        book = create(createBook(null, null, publisher, 2019));
+
+        // Act
+        ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri + "?publisher=" + publisher,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BookResponse<List<Book>>>(){});
+
+        // Assert
+        BookResponse<List<Book>> body = bookResponse.getBody();
+        assertThat(body).isNotNull();
+        List<Book> data = body.getData();
+        assertThat(data).isNotNull();
+        assertThat(data.size()).isEqualTo(1);
+        assertThat(data.get(0).getPublisher()).isEqualTo(publisher);
+    }
+
+    @Test
+    public void whenReadAllByYearThenShouldReturnMatchingBook() {
+        // Arrange
+        int year = 2000;
+        book = create(createBook(null, null, null, year));
+
+        // Act
+        ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri + "?year=" + year,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BookResponse<List<Book>>>(){});
+
+        // Assert
+        BookResponse<List<Book>> body = bookResponse.getBody();
+        assertThat(body).isNotNull();
+        List<Book> data = body.getData();
+        assertThat(data).isNotNull();
+        assertThat(data.size()).isEqualTo(1);
+        assertThat(data.get(0).getReleaseDate().getYear()).isEqualTo(year);
     }
 
     @Test
@@ -216,13 +300,13 @@ public class BookServiceTest {
 
     private static int suffix = 1;
 
-    private Book createBook() {
+    private Book createBook(String name, String country, String publisher, Integer year) {
         Book book = new Book();
-        book.setName("Sample Book name" + suffix);
+        book.setName(name == null ? ("Sample Book name" + suffix) : name);
         book.setIsbn("12454386-870" + suffix++);
-        book.setPublisher("IBM Press");
-        book.setCountry("Egypt");
-        book.setReleaseDate(LocalDate.of(getInt(2019, 2004), 11, 1));
+        book.setPublisher(publisher == null ? "IBM Press" : publisher);
+        book.setCountry(country == null ? "Egypt" : country);
+        book.setReleaseDate(LocalDate.of(year, 11, getInt(28, 1)));
         book.setNumberOfPages(getInt(1000, 250));
         book.setAuthors(getAuthors(getInt(6, 5)));
 
@@ -244,6 +328,7 @@ public class BookServiceTest {
         template.setMessageConverters(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
         return template;
     }
+
     private Book create(Book input) {
         ResponseEntity<BookResponse<List<Book>>> bookResponse = template.exchange(booksUri,
                 HttpMethod.POST,
