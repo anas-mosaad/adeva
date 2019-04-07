@@ -1,15 +1,14 @@
 package com.samples.api.books.rest;
 
-import com.samples.api.books.dto.Book;
+import com.samples.api.books.external.dto.Book;
 import com.samples.api.books.external.service.AceAndFireService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.samples.api.books.rest.BookResponse.ok;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
@@ -23,10 +22,10 @@ public class ExternalBookController {
     }
 
     @RequestMapping(value = "", method = GET)
-    public BookResponse getAllBooks(@RequestParam(required = false) String name) {
+    public BookResponse<List<Book>> getAllBooks(@RequestParam(required = false) String name) {
         List<Book> books = name == null
                 ? service.getAllBooks()
                 : service.getAllBooksByName(name);
-        return new BookResponse(HttpStatus.OK.value(), "success", books);
+        return ok(books);
     }
 }

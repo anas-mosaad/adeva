@@ -1,4 +1,4 @@
-package com.samples.api.books.dto;
+package com.samples.api.books.external.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,6 +1,6 @@
 package com.samples.api.books.external.service;
 
-import com.samples.api.books.dto.Book;
+import com.samples.api.books.external.dto.Book;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

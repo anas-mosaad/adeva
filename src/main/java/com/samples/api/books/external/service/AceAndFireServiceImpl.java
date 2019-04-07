@@ -1,6 +1,6 @@
 package com.samples.api.books.external.service;
 
-import com.samples.api.books.dto.Book;
+import com.samples.api.books.external.dto.Book;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;

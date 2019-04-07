@@ -1,15 +1,15 @@
 package com.samples.api.books.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.samples.api.books.dto.Book;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Data
 @AllArgsConstructor
-class BookResponse {
+@NoArgsConstructor
+public class BookResponse<T> {
     @JsonProperty("status_code")
     private Integer statusCode;
 
@@ -17,6 +17,13 @@ class BookResponse {
     private String status;
 
     @JsonProperty("data")
-    private List<Book> books;
+    private T data;
 
+    static <T> BookResponse<T> ok(T data) {
+        return new BookResponse<>(HttpStatus.OK.value(), "success", data);
+    }
+
+    static <T> BookResponse<T> created(T data) {
+        return new BookResponse<>(HttpStatus.CREATED.value(), "success", data);
+    }
 }
